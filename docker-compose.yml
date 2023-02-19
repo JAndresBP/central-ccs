@@ -28,7 +28,7 @@ services:
     build: ./source/StateSignalReceiver/
     environment:
       - STATE_REDIS_CONNECTION=state_redis_db:6379
-      - ASPNETCORE_ENVIRONMENT=Development
+      # - ASPNETCORE_ENVIRONMENT=Development
     depends_on:
       - state_redis_db
     ports:
