@@ -1,0 +1,38 @@
+version: "3.9"
+services:
+  state_redis_db:
+    image: redis
+    ports:
+      - "6381:6379"
+  alert_redis_db:
+    image: redis
+    ports:
+      - "6382:6379"
+  anomaly-detector:
+    build: ./source/AnomalyDetector/
+    environment:
+      - STATE_REDIS_CONNECTION=state_redis_db:6379
+      - ALERT_REDIS_CONNECTION=alert_redis_db:6379
+      - THREADS=10
+    depends_on:
+      - state_redis_db
+      - alert_redis_db
+  alert-generator:
+    build: ./source/AlertGenerator/
+    environment:
+      - ALERT_REDIS_CONNECTION=alert_redis_db:6379
+      - THREADS=10
+    depends_on:
+      - alert_redis_db
+  state-signal-receiver:
+    build: ./source/StateSignalReceiver/
+    environment:
+      - STATE_REDIS_CONNECTION=state_redis_db:6379
+      - ASPNETCORE_ENVIRONMENT=Development
+    depends_on:
+      - state_redis_db
+    ports:
+      - "5000:80"
+networks:
+    default:
+        driver: bridge
