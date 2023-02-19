@@ -1,4 +1,6 @@
 ﻿using StackExchange.Redis;
+using Amazon.SimpleNotificationService;
+
 
 namespace AlertGenerator
 {
@@ -29,10 +31,13 @@ namespace AlertGenerator
             {
                 await alertDB.StreamCreateConsumerGroupAsync(alertStreamName, groupName, "0-0", true);
             }
+            IAmazonSimpleNotificationService client = new AmazonSimpleNotificationServiceClient();
+            string topicArn = "arn:aws:sns:us-east-1:439979626637:interesados";
+            
             var stakeholders = new List<StakeHolder>();
-            for (int i = 0; i < 20; i++)
+            for (int i = 0; i < 1; i++)
             {
-                stakeholders.Add(new StakeHolder());
+                stakeholders.Add(new StakeHolder(client,topicArn));
             }
 
             List<Task> consumerGroupTasks = new List<Task>();
@@ -41,7 +46,7 @@ namespace AlertGenerator
                 var consumerGroupReadTask = Task.Run(async () =>
                 {
                     var counter = 0;
-                    const int maxCount = 600000;
+                    const int maxCount = 6000000;
                     string id = string.Empty;
                     while (!token.IsCancellationRequested)
                     {
@@ -72,7 +77,6 @@ namespace AlertGenerator
                             anomalies = ((string)streamElement[nameof(anomalies)]).Split(',').Select(item => Enum.Parse<Anomaly>(item)).ToList();
                             await NotifyAllStakeHolders(stakeholders, state, anomalies);
                         }
-                        await Task.Delay(1);
                         counter++;
                         if (counter > maxCount)
                         {

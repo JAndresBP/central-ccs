@@ -43,7 +43,7 @@ namespace AnomalyDetector
                 var consumerGroupReadTask = Task.Run(async () =>
                 {
                     var counter = 0;
-                    const int maxCount = 600000;
+                    const int maxCount = 6000000;
                     string id = string.Empty;
                     while (!token.IsCancellationRequested)
                     {
@@ -88,7 +88,6 @@ namespace AnomalyDetector
                             }
 
                         }
-                        await Task.Delay(1);
                         counter++;
                         if (counter > maxCount)
                         {
