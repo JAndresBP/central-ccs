@@ -18,6 +18,7 @@ builder.Services.AddSwaggerGen();
 var app = builder.Build();
 
 app.MapPost("/state",  async (State state) => {
+    state.startTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
     Console.WriteLine($"State signal received - signal Id: {state.signalId} - time: {System.Diagnostics.Stopwatch.GetTimestamp()}");
     await db.StreamAddAsync(streamName,new StackExchange.Redis.NameValueEntry[]{
         new (nameof(State.signalId), state.signalId.ToString()),
@@ -26,7 +27,8 @@ app.MapPost("/state",  async (State state) => {
         // new (nameof(State.localization.lon), state.localization?.lon ?? 0),
         new (nameof(State.speed),(double)state.speed),
         new (nameof(State.payloadTemperature),(double)state.payloadTemperature),
-        new (nameof(State.status),(int)state.status) 
+        new (nameof(State.status),(int)state.status),
+        new (nameof(State.startTime),state.startTime) 
     });
     return Results.Accepted();
 });

@@ -64,8 +64,8 @@ namespace AnomalyDetector
                             {
                                 counter = 0;
                                 var streamElement = result.First();
-                                var values = JsonConvert.SerializeObject(streamElement.Values);
-                                Console.WriteLine($"Detecting anomalies - {values} - time: {System.Diagnostics.Stopwatch.GetTimestamp()}");
+                                // var values = JsonConvert.SerializeObject(streamElement.Values);
+                                // Console.WriteLine($"Detecting anomalies - {values} - time: {System.Diagnostics.Stopwatch.GetTimestamp()}");
                                 id = Convert.ToString(streamElement.Id);
                                 var state = new State()
                                 {
@@ -79,11 +79,12 @@ namespace AnomalyDetector
                                     speed = Convert.ToDouble(streamElement[nameof(State.speed)]),
                                     payloadTemperature = Convert.ToDouble(streamElement[nameof(State.payloadTemperature)]),
                                     status = (VehicleStatus)(Convert.ToInt32(streamElement[nameof(State.status)])),
+                                    startTime = Convert.ToInt64(streamElement[nameof(State.startTime)])
                                 };
                                 var anomalies = await state.CheckAnomalies();
                                 if (anomalies.Any())
                                 {
-                                    Console.WriteLine($"Writting - alert cache - time: {System.Diagnostics.Stopwatch.GetTimestamp()}");
+                                    // Console.WriteLine($"Writting - alert cache - time: {System.Diagnostics.Stopwatch.GetTimestamp()}");
                                     var anomaliesStr = string.Join(",", anomalies.Select(item => item.ToString()));
                                     await alertDB.StreamAddAsync(alertStreamName, new StackExchange.Redis.NameValueEntry[]{
                                     new (nameof(State.signalId), state.signalId.ToString()),
@@ -93,7 +94,8 @@ namespace AnomalyDetector
                                     new (nameof(State.speed),(double)state.speed),
                                     new (nameof(State.payloadTemperature),(double)state.payloadTemperature),
                                     new (nameof(State.status),(int)state.status),
-                                    new (nameof(anomalies), anomaliesStr)
+                                    new (nameof(anomalies), anomaliesStr),
+                                    new (nameof(State.startTime),state.startTime)
                                 });
                                 }
                             }

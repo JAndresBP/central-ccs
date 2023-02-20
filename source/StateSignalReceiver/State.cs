@@ -16,4 +16,5 @@ public class State{
     public double speed {get;set;}
     public double payloadTemperature {get;set;}
     public VehicleStatus status {get;set;}
+    public long startTime{get;set;}
 }

@@ -72,8 +72,8 @@ namespace AlertGenerator
                             try
                             {
                                 var streamElement = result.First();
-                                var values = JsonConvert.SerializeObject(streamElement.Values);
-                                Console.WriteLine($"Sending alerts - {values} - time: {System.Diagnostics.Stopwatch.GetTimestamp()}");
+                                // var values = JsonConvert.SerializeObject(streamElement.Values);
+                                // Console.WriteLine($"Sending alerts - {values} - time: {System.Diagnostics.Stopwatch.GetTimestamp()}");
 
                                 id = Convert.ToString(streamElement.Id);
                                 var state = new State()
@@ -88,6 +88,7 @@ namespace AlertGenerator
                                     speed = Convert.ToDouble(streamElement[nameof(State.speed)]),
                                     payloadTemperature = Convert.ToDouble(streamElement[nameof(State.payloadTemperature)]),
                                     status = (VehicleStatus)Convert.ToInt32(streamElement[nameof(State.status)]),
+                                    startTime = Convert.ToInt64(streamElement[nameof(State.startTime)])
                                 };
                                 IReadOnlyList<Anomaly> anomalies;
                                 anomalies = (Convert.ToString(streamElement[nameof(anomalies)])).Split(',').Select(item => Enum.Parse<Anomaly>(item)).ToList();
@@ -112,6 +113,7 @@ namespace AlertGenerator
         public static async Task NotifyAllStakeHolders(IReadOnlyList<StakeHolder> stakeHolders, State state, IReadOnlyList<Anomaly> anomalies)
         {
             Console.WriteLine($"Sending Alerts - signal Id: {state.signalId} - time: {System.Diagnostics.Stopwatch.GetTimestamp()}");
+            Console.WriteLine($"Total time ms - signal Id: {state.signalId} - time: {(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - state.startTime)}");
             var tasks = stakeHolders.Select(item => item.Notify(state, anomalies));
             await Task.WhenAll(tasks.ToArray());
             //Console.WriteLine($"Sending Alerts complete - signal Id: {state.signalId} - time: {System.Diagnostics.Stopwatch.GetTimestamp()}");
