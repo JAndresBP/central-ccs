@@ -89,9 +89,9 @@ namespace AnomalyDetector
                                 });
                                 }
                             }
-                            catch
+                            catch (Exception e)
                             {
-
+                                Console.WriteLine(e);
                             }
 
                         }

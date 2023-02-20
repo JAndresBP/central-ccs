@@ -89,7 +89,9 @@ namespace AlertGenerator
                                 anomalies = ((string)streamElement[nameof(anomalies)]).Split(',').Select(item => Enum.Parse<Anomaly>(item)).ToList();
                                 await NotifyAllStakeHolders(stakeholders, state, anomalies);
                             }
-                            catch { }
+                            catch (Exception e) {
+                                Console.WriteLine(e);
+                            }
                         }
                         counter++;
                         if (counter > maxCount)
