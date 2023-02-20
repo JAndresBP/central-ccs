@@ -22,7 +22,7 @@ namespace AlertGenerator
                 });
 
             var alertDB = alertRedis.GetDatabase();
-
+            Console.WriteLine($"Conectado a alert cache - {alertRedisConnection} - time: {System.Diagnostics.Stopwatch.GetTimestamp()}");
             const string alertStreamName = "alerts";
             const string groupName = "avg";
 
@@ -60,7 +60,7 @@ namespace AlertGenerator
                     string id = string.Empty;
                     while (!token.IsCancellationRequested)
                     {
-                        Console.WriteLine($"Reading - alert cache - time: {System.Diagnostics.Stopwatch.GetTimestamp()}");
+                        // Console.WriteLine($"Reading - alert cache - time: {System.Diagnostics.Stopwatch.GetTimestamp()}");
                         if (!string.IsNullOrEmpty(id))
                         {
                             await alertDB.StreamAcknowledgeAsync(alertStreamName, groupName, id);
