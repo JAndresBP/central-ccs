@@ -10,12 +10,16 @@ public class StakeHolder{
         _topic = topic;
     }
     public async Task Notify(State state, IReadOnlyList<Anomaly> anomalies){
-        var request = new PublishRequest
-            {
-                TopicArn = _topic,
-                Message = JsonConvert.SerializeObject(new {state, anomalies})
-            };
+        if(_client != null){
+            var request = new PublishRequest
+                {
+                    TopicArn = _topic,
+                    Message = JsonConvert.SerializeObject(new {state, anomalies})
+                };
 
             var response = await _client.PublishAsync(request);
+        }else{
+           await Task.Delay(50);
+        }
     }
 }

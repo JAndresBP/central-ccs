@@ -55,27 +55,29 @@ namespace AnomalyDetector
                         var result = await stateDb.StreamReadGroupAsync(streamName, groupName, $"avg-{i}", ">", 1);
                         if (result.Any())
                         {
-                            counter = 0;
-                            var streamElement = result.First();
-                            id = streamElement.Id;
-                            var state = new State()
+                            try
                             {
-                                signalId = Guid.Parse(streamElement[nameof(State.signalId)]),
-                                vehicleId = Guid.Parse(streamElement[nameof(State.vehicleId)]),
-                                localization = new Localization()
+                                counter = 0;
+                                var streamElement = result.First();
+                                id = streamElement.Id;
+                                var state = new State()
                                 {
-                                    lat = (double)streamElement[nameof(Localization.lat)],
-                                    lon = (double)streamElement[nameof(Localization.lon)]
-                                },
-                                speed = (double)streamElement[nameof(State.speed)],
-                                payloadTemperature = (double)streamElement[nameof(State.payloadTemperature)],
-                                status = (VehicleStatus)(int)streamElement[nameof(State.status)],
-                            };
-                            var anomalies = await state.CheckAnomalies();
-                            if (anomalies.Any())
-                            {
-                                var anomaliesStr = string.Join(",", anomalies.Select(item => item.ToString()));
-                                await alertDB.StreamAddAsync(alertStreamName, new StackExchange.Redis.NameValueEntry[]{
+                                    signalId = Guid.Parse(streamElement[nameof(State.signalId)]),
+                                    vehicleId = Guid.Parse(streamElement[nameof(State.vehicleId)]),
+                                    localization = new Localization()
+                                    {
+                                        lat = (double)streamElement[nameof(Localization.lat)],
+                                        lon = (double)streamElement[nameof(Localization.lon)]
+                                    },
+                                    speed = (double)streamElement[nameof(State.speed)],
+                                    payloadTemperature = (double)streamElement[nameof(State.payloadTemperature)],
+                                    status = (VehicleStatus)(int)streamElement[nameof(State.status)],
+                                };
+                                var anomalies = await state.CheckAnomalies();
+                                if (anomalies.Any())
+                                {
+                                    var anomaliesStr = string.Join(",", anomalies.Select(item => item.ToString()));
+                                    await alertDB.StreamAddAsync(alertStreamName, new StackExchange.Redis.NameValueEntry[]{
                                 new (nameof(State.signalId), state.signalId.ToString()),
                                 new (nameof(State.vehicleId), state.vehicleId.ToString()),
                                 new (nameof(State.localization.lat), state.localization?.lat),
@@ -85,6 +87,11 @@ namespace AnomalyDetector
                                 new (nameof(State.status),(int)state.status),
                                 new (nameof(anomalies), anomaliesStr)
                                 });
+                                }
+                            }
+                            catch
+                            {
+
                             }
 
                         }

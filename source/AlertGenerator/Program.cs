@@ -31,13 +31,23 @@ namespace AlertGenerator
             {
                 await alertDB.StreamCreateConsumerGroupAsync(alertStreamName, groupName, "0-0", true);
             }
-            IAmazonSimpleNotificationService client = new AmazonSimpleNotificationServiceClient();
+            IAmazonSimpleNotificationService client = null;
+
+            try
+            {
+                client = new AmazonSimpleNotificationServiceClient();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+
             string topicArn = "arn:aws:sns:us-east-1:439979626637:interesados";
-            
+
             var stakeholders = new List<StakeHolder>();
             for (int i = 0; i < 1; i++)
             {
-                stakeholders.Add(new StakeHolder(client,topicArn));
+                stakeholders.Add(new StakeHolder(client, topicArn));
             }
 
             List<Task> consumerGroupTasks = new List<Task>();
@@ -58,24 +68,28 @@ namespace AlertGenerator
                         var result = await alertDB.StreamReadGroupAsync(alertStreamName, groupName, $"avg-{i}", ">", 1);
                         if (result.Any())
                         {
-                            var streamElement = result.First();
-                            id = streamElement.Id;
-                            var state = new State()
+                            try
                             {
-                                signalId = Guid.Parse(streamElement[nameof(State.signalId)]),
-                                vehicleId = Guid.Parse(streamElement[nameof(State.vehicleId)]),
-                                localization = new Localization()
+                                var streamElement = result.First();
+                                id = streamElement.Id;
+                                var state = new State()
                                 {
-                                    lat = (double)streamElement[nameof(Localization.lat)],
-                                    lon = (double)streamElement[nameof(Localization.lon)]
-                                },
-                                speed = (double)streamElement[nameof(State.speed)],
-                                payloadTemperature = (double)streamElement[nameof(State.payloadTemperature)],
-                                status = (VehicleStatus)(int)streamElement[nameof(State.status)],
-                            };
-                            IReadOnlyList<Anomaly> anomalies;
-                            anomalies = ((string)streamElement[nameof(anomalies)]).Split(',').Select(item => Enum.Parse<Anomaly>(item)).ToList();
-                            await NotifyAllStakeHolders(stakeholders, state, anomalies);
+                                    signalId = Guid.Parse(streamElement[nameof(State.signalId)]),
+                                    vehicleId = Guid.Parse(streamElement[nameof(State.vehicleId)]),
+                                    localization = new Localization()
+                                    {
+                                        lat = (double)streamElement[nameof(Localization.lat)],
+                                        lon = (double)streamElement[nameof(Localization.lon)]
+                                    },
+                                    speed = (double)streamElement[nameof(State.speed)],
+                                    payloadTemperature = (double)streamElement[nameof(State.payloadTemperature)],
+                                    status = (VehicleStatus)(int)streamElement[nameof(State.status)],
+                                };
+                                IReadOnlyList<Anomaly> anomalies;
+                                anomalies = ((string)streamElement[nameof(anomalies)]).Split(',').Select(item => Enum.Parse<Anomaly>(item)).ToList();
+                                await NotifyAllStakeHolders(stakeholders, state, anomalies);
+                            }
+                            catch { }
                         }
                         counter++;
                         if (counter > maxCount)
