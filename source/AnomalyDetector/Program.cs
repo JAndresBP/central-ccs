@@ -13,6 +13,7 @@ namespace AnomalyDetector
             var stateRedisConnection = Environment.GetEnvironmentVariable("STATE_REDIS_CONNECTION") ?? "localhost:6379";
             var alertRedisConnection = Environment.GetEnvironmentVariable("ALERT_REDIS_CONNECTION") ?? "localhost:6380";
             var threads = int.Parse(Environment.GetEnvironmentVariable("THREADS") ?? "1");
+            //var batchSize = int.Parse(Environment.GetEnvironmentVariable("BATCH_SIZE") ?? "1");
             var stateRedis = ConnectionMultiplexer.Connect(
                 new ConfigurationOptions
                 {
@@ -47,26 +48,21 @@ namespace AnomalyDetector
                 {
                     var counter = 0;
                     const int maxCount = 6000000;
-                    string id = string.Empty;
+                    // string id = string.Empty;
                     while (!token.IsCancellationRequested)
                     {
-                        // Console.WriteLine($"Reading - state cache - time: {System.Diagnostics.Stopwatch.GetTimestamp()}");
-                        if (!string.IsNullOrEmpty(id))
+                        try
                         {
-                            await stateDb.StreamAcknowledgeAsync(streamName, groupName, id);
-                            id = string.Empty;
-                        }
-                        
-                        var result = await stateDb.StreamReadGroupAsync(streamName, groupName, $"avg-{i}", ">", 1);
-                        if (result.Any())
-                        {
-                            try
+                            // Console.WriteLine($"Reading - state cache - time: {System.Diagnostics.Stopwatch.GetTimestamp()}");
+                            var result = await stateDb.StreamReadGroupAsync(streamName, groupName, $"avg-{i}", ">", 1);
+                            if (result.Any())
                             {
-                                counter = 0;
                                 var streamElement = result.First();
+
+                                //counter = 0;
                                 // var values = JsonConvert.SerializeObject(streamElement.Values);
                                 // Console.WriteLine($"Detecting anomalies - {values} - time: {System.Diagnostics.Stopwatch.GetTimestamp()}");
-                                id = Convert.ToString(streamElement.Id);
+
                                 var state = new State()
                                 {
                                     signalId = Guid.Parse(Convert.ToString(streamElement[nameof(State.signalId)])),
@@ -97,23 +93,30 @@ namespace AnomalyDetector
                                     new (nameof(anomalies), anomaliesStr),
                                     new (nameof(State.startTime),state.startTime)
                                 });
-                                }else{
+                                }
+                                else
+                                {
                                     var endtime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
                                     Console.WriteLine($"AnomalyDetector - total time ms - signal Id: {state.signalId} - start time: {state.startTime} - end time {endtime} delta time: {(endtime - state.startTime)}");
                                 }
-                            }
-                            catch (Exception e)
-                            {
-                                Console.WriteLine(e);
-                            }
 
+                                if (streamElement.Id.HasValue)
+                                {
+                                    await stateDb.StreamAcknowledgeAsync(streamName, groupName, streamElement.Id);
+                                }
+
+                            }
+                            // counter++;
+                            // if (counter > maxCount)
+                            // {
+                            //     tokensource.Cancel();
+                            //     Console.WriteLine("!!!Closing!!!");
+                            // }
                         }
-                        // counter++;
-                        // if (counter > maxCount)
-                        // {
-                        //     tokensource.Cancel();
-                        //     Console.WriteLine("!!!Closing!!!");
-                        // }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e);
+                        }
                     }
                 });
                 consumerGroupTasks.Add(consumerGroupReadTask);

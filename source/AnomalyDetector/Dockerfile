@@ -1,7 +1,7 @@
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build-env
 WORKDIR /App
 ENV STATE_REDIS_CONNECTION 'localhost:6379'
-ENV ALERT_REDIS_CONNECTION 'localhost:6379'
+ENV ALERT_REDIS_CONNECTION 'localhost:6380'
 # Copy everything
 COPY . ./
 # Restore as distinct layers

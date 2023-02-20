@@ -14,7 +14,7 @@ namespace AlertGenerator
 
             var alertRedisConnection = Environment.GetEnvironmentVariable("ALERT_REDIS_CONNECTION") ?? "localhost:6380";
             var threads = int.Parse(Environment.GetEnvironmentVariable("THREADS") ?? "1");
-
+            //var batchSize = int.Parse(Environment.GetEnvironmentVariable("BATCH_SIZE") ?? "1");
             var alertRedis = ConnectionMultiplexer.Connect(
                 new ConfigurationOptions
                 {
@@ -57,25 +57,20 @@ namespace AlertGenerator
                 {
                     var counter = 0;
                     const int maxCount = 6000000;
-                    string id = string.Empty;
+                    // string id = string.Empty;
                     while (!token.IsCancellationRequested)
                     {
-                        // Console.WriteLine($"Reading - alert cache - time: {System.Diagnostics.Stopwatch.GetTimestamp()}");
-                        if (!string.IsNullOrEmpty(id))
+                        try
                         {
-                            await alertDB.StreamAcknowledgeAsync(alertStreamName, groupName, id);
-                            id = string.Empty;
-                        }
-                        var result = await alertDB.StreamReadGroupAsync(alertStreamName, groupName, $"avg-{i}", ">", 1);
-                        if (result.Any())
-                        {
-                            try
+                            // Console.WriteLine($"Reading - alert cache - time: {System.Diagnostics.Stopwatch.GetTimestamp()}");
+                            var result = await alertDB.StreamReadGroupAsync(alertStreamName, groupName, $"avg-{i}", ">", 1);
+                            if (result.Any())
                             {
                                 var streamElement = result.First();
+                                //counter = 0;
                                 // var values = JsonConvert.SerializeObject(streamElement.Values);
                                 // Console.WriteLine($"Sending alerts - {values} - time: {System.Diagnostics.Stopwatch.GetTimestamp()}");
 
-                                id = Convert.ToString(streamElement.Id);
                                 var state = new State()
                                 {
                                     signalId = Guid.Parse(Convert.ToString(streamElement[nameof(State.signalId)])),
@@ -93,9 +88,11 @@ namespace AlertGenerator
                                 IReadOnlyList<Anomaly> anomalies;
                                 anomalies = (Convert.ToString(streamElement[nameof(anomalies)])).Split(',').Select(item => Enum.Parse<Anomaly>(item)).ToList();
                                 await NotifyAllStakeHolders(stakeholders, state, anomalies);
-                            }
-                            catch (Exception e) {
-                                Console.WriteLine(e);
+
+                                if (streamElement.Id.HasValue)
+                                {
+                                    await alertDB.StreamAcknowledgeAsync(alertStreamName, groupName, streamElement.Id);
+                                }
                             }
                         }
                         // counter++;
@@ -103,6 +100,10 @@ namespace AlertGenerator
                         // {
                         //     tokensource.Cancel();
                         // }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e);
+                        }
                     }
                 });
                 consumerGroupTasks.Add(consumerGroupReadTask);
