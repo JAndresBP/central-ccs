@@ -22,8 +22,8 @@ app.MapPost("/state",  async (State state) => {
     await db.StreamAddAsync(streamName,new StackExchange.Redis.NameValueEntry[]{
         new (nameof(State.signalId), state.signalId.ToString()),
         new (nameof(State.vehicleId), state.vehicleId.ToString()),
-        new (nameof(State.localization.lat), state.localization?.lat),
-        new (nameof(State.localization.lon), state.localization?.lon),
+        // new (nameof(State.localization.lat), state.localization?.lat ?? 0),
+        // new (nameof(State.localization.lon), state.localization?.lon ?? 0),
         new (nameof(State.speed),(double)state.speed),
         new (nameof(State.payloadTemperature),(double)state.payloadTemperature),
         new (nameof(State.status),(int)state.status) 

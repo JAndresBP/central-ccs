@@ -10,6 +10,7 @@ public class StakeHolder{
         _topic = topic;
     }
     public async Task Notify(State state, IReadOnlyList<Anomaly> anomalies){
+        try{
         if(_client != null){
             var request = new PublishRequest
                 {
@@ -20,6 +21,8 @@ public class StakeHolder{
             var response = await _client.PublishAsync(request);
         }else{
            await Task.Delay(50);
+        }}catch(Exception e){
+            Console.WriteLine(e);
         }
     }
 }

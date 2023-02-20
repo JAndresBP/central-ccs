@@ -1,6 +1,6 @@
 ﻿using StackExchange.Redis;
 using Amazon.SimpleNotificationService;
-
+using Newtonsoft.Json;
 
 namespace AlertGenerator
 {
@@ -60,6 +60,7 @@ namespace AlertGenerator
                     string id = string.Empty;
                     while (!token.IsCancellationRequested)
                     {
+                        Console.WriteLine($"Reading - alert cache - time: {System.Diagnostics.Stopwatch.GetTimestamp()}");
                         if (!string.IsNullOrEmpty(id))
                         {
                             await alertDB.StreamAcknowledgeAsync(alertStreamName, groupName, id);
@@ -71,33 +72,36 @@ namespace AlertGenerator
                             try
                             {
                                 var streamElement = result.First();
-                                id = streamElement.Id;
+                                var values = JsonConvert.SerializeObject(streamElement.Values);
+                                Console.WriteLine($"Sending alerts - {values} - time: {System.Diagnostics.Stopwatch.GetTimestamp()}");
+
+                                id = Convert.ToString(streamElement.Id);
                                 var state = new State()
                                 {
-                                    signalId = Guid.Parse(streamElement[nameof(State.signalId)]),
-                                    vehicleId = Guid.Parse(streamElement[nameof(State.vehicleId)]),
-                                    localization = new Localization()
-                                    {
-                                        lat = (double)streamElement[nameof(Localization.lat)],
-                                        lon = (double)streamElement[nameof(Localization.lon)]
-                                    },
-                                    speed = (double)streamElement[nameof(State.speed)],
-                                    payloadTemperature = (double)streamElement[nameof(State.payloadTemperature)],
-                                    status = (VehicleStatus)(int)streamElement[nameof(State.status)],
+                                    signalId = Guid.Parse(Convert.ToString(streamElement[nameof(State.signalId)])),
+                                    vehicleId = Guid.Parse(Convert.ToString(streamElement[nameof(State.vehicleId)])),
+                                    // localization = new Localization()
+                                    // {
+                                    //     lat = Convert.ToDouble(streamElement[nameof(Localization.lat)]),
+                                    //     lon = Convert.ToDouble(streamElement[nameof(Localization.lon)])
+                                    // },
+                                    speed = Convert.ToDouble(streamElement[nameof(State.speed)]),
+                                    payloadTemperature = Convert.ToDouble(streamElement[nameof(State.payloadTemperature)]),
+                                    status = (VehicleStatus)Convert.ToInt32(streamElement[nameof(State.status)]),
                                 };
                                 IReadOnlyList<Anomaly> anomalies;
-                                anomalies = ((string)streamElement[nameof(anomalies)]).Split(',').Select(item => Enum.Parse<Anomaly>(item)).ToList();
+                                anomalies = (Convert.ToString(streamElement[nameof(anomalies)])).Split(',').Select(item => Enum.Parse<Anomaly>(item)).ToList();
                                 await NotifyAllStakeHolders(stakeholders, state, anomalies);
                             }
                             catch (Exception e) {
                                 Console.WriteLine(e);
                             }
                         }
-                        counter++;
-                        if (counter > maxCount)
-                        {
-                            tokensource.Cancel();
-                        }
+                        // counter++;
+                        // if (counter > maxCount)
+                        // {
+                        //     tokensource.Cancel();
+                        // }
                     }
                 });
                 consumerGroupTasks.Add(consumerGroupReadTask);

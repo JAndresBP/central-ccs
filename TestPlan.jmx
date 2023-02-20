@@ -57,9 +57,9 @@
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
         <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
           <boolProp name="LoopController.continue_forever">false</boolProp>
-          <stringProp name="LoopController.loops">5</stringProp>
+          <stringProp name="LoopController.loops">1</stringProp>
         </elementProp>
-        <stringProp name="ThreadGroup.num_threads">100</stringProp>
+        <stringProp name="ThreadGroup.num_threads">50</stringProp>
         <stringProp name="ThreadGroup.ramp_time">1</stringProp>
         <boolProp name="ThreadGroup.scheduler">false</boolProp>
         <stringProp name="ThreadGroup.duration"></stringProp>
@@ -76,10 +76,6 @@
                 <stringProp name="Argument.value">{&#xd;
   &quot;signalId&quot;: &quot;${__UUID()}&quot;,&#xd;
   &quot;vehicleId&quot;: &quot;${__UUID()}&quot;,&#xd;
-  &quot;localization&quot;: {&#xd;
-    &quot;lat&quot;: 4.${__Random(0,1000)},&#xd;
-    &quot;lon&quot;: -72.${__Random(0,1000)}&#xd;
-  },&#xd;
   &quot;speed&quot;: ${__Random(0,200)},&#xd;
   &quot;payloadTemperature&quot;: ${__Random(-10,80)},&#xd;
   &quot;status&quot;: ${__Random(0,4)}&#xd;

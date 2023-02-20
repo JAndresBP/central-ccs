@@ -38,7 +38,7 @@ public class State{
         if(this.payloadTemperature > 45){
             result.Add(Anomaly.HighTemperature);
         }
-        await Task.Delay(5);
+        
         return result;
     }
 }
