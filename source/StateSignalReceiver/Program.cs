@@ -19,7 +19,7 @@ var app = builder.Build();
 
 app.MapPost("/state",  async (State state) => {
     state.startTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-    Console.WriteLine($"State signal received - signal Id: {state.signalId} - time: {System.Diagnostics.Stopwatch.GetTimestamp()}");
+    // Console.WriteLine($"State signal received - signal Id: {state.signalId} - time: {System.Diagnostics.Stopwatch.GetTimestamp()}");
     await db.StreamAddAsync(streamName,new StackExchange.Redis.NameValueEntry[]{
         new (nameof(State.signalId), state.signalId.ToString()),
         new (nameof(State.vehicleId), state.vehicleId.ToString()),

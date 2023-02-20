@@ -97,6 +97,9 @@ namespace AnomalyDetector
                                     new (nameof(anomalies), anomaliesStr),
                                     new (nameof(State.startTime),state.startTime)
                                 });
+                                }else{
+                                    var endtime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                                    Console.WriteLine($"AnomalyDetector - total time ms - signal Id: {state.signalId} - start time: {state.startTime} - end time {endtime} delta time: {(endtime - state.startTime)}");
                                 }
                             }
                             catch (Exception e)

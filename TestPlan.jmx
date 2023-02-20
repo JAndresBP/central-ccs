@@ -76,8 +76,8 @@
                 <stringProp name="Argument.value">{&#xd;
   &quot;signalId&quot;: &quot;${__UUID()}&quot;,&#xd;
   &quot;vehicleId&quot;: &quot;${__UUID()}&quot;,&#xd;
-  &quot;speed&quot;: ${__Random(0,200)},&#xd;
-  &quot;payloadTemperature&quot;: ${__Random(-10,80)},&#xd;
+  &quot;speed&quot;: ${__Random(20,150)},&#xd;
+  &quot;payloadTemperature&quot;: ${__Random(10,80)},&#xd;
   &quot;status&quot;: ${__Random(0,4)}&#xd;
 }</stringProp>
                 <stringProp name="Argument.metadata">=</stringProp>

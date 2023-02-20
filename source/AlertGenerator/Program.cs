@@ -112,8 +112,9 @@ namespace AlertGenerator
 
         public static async Task NotifyAllStakeHolders(IReadOnlyList<StakeHolder> stakeHolders, State state, IReadOnlyList<Anomaly> anomalies)
         {
-            Console.WriteLine($"Sending Alerts - signal Id: {state.signalId} - time: {System.Diagnostics.Stopwatch.GetTimestamp()}");
-            Console.WriteLine($"Total time ms - signal Id: {state.signalId} - time: {(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - state.startTime)}");
+            // Console.WriteLine($"Sending Alerts - signal Id: {state.signalId} - time: {System.Diagnostics.Stopwatch.GetTimestamp()}");
+            var endtime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            Console.WriteLine($"AlertGenerator - total time ms - signal Id: {state.signalId} - start time: {state.startTime} - end time {endtime} delta time: {(endtime - state.startTime)}");
             var tasks = stakeHolders.Select(item => item.Notify(state, anomalies));
             await Task.WhenAll(tasks.ToArray());
             //Console.WriteLine($"Sending Alerts complete - signal Id: {state.signalId} - time: {System.Diagnostics.Stopwatch.GetTimestamp()}");
