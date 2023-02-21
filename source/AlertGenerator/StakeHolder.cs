@@ -20,7 +20,7 @@ public class StakeHolder{
 
             var response = await _client.PublishAsync(request);
         }else{
-           await Task.Delay(50);
+           await Task.Delay(1);
         }}catch(Exception e){
             Console.WriteLine(e);
         }

@@ -13,17 +13,25 @@ services:
     environment:
       - STATE_REDIS_CONNECTION=state_redis_db:6379
       - ALERT_REDIS_CONNECTION=alert_redis_db:6379
-      - THREADS=500
+      - THREADS=1
+      - BATCH_SIZE=100
     depends_on:
       - state_redis_db
       - alert_redis_db
+    deploy:
+      mode: replicated
+      replicas: 1
   alert-generator:
     build: ./source/AlertGenerator/
     environment:
       - ALERT_REDIS_CONNECTION=alert_redis_db:6379
-      - THREADS=500
+      - THREADS=1
+      - BATCH_SIZE=100
     depends_on:
       - alert_redis_db
+    deploy:
+      mode: replicated
+      replicas: 1
   state-signal-receiver:
     build: ./source/StateSignalReceiver/
     environment:
