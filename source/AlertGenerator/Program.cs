@@ -33,14 +33,14 @@ namespace AlertGenerator
             }
             IAmazonSimpleNotificationService client = null;
 
-            try
-            {
-                client = new AmazonSimpleNotificationServiceClient();
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-            }
+            // try
+            // {
+            //     client = new AmazonSimpleNotificationServiceClient();
+            // }
+            // catch (Exception e)
+            // {
+            //     Console.WriteLine(e);
+            // }
 
             string topicArn = "arn:aws:sns:us-east-1:439979626637:interesados";
 
@@ -63,7 +63,7 @@ namespace AlertGenerator
                         try
                         {
                             // Console.WriteLine($"Reading - alert cache - time: {System.Diagnostics.Stopwatch.GetTimestamp()}");
-                            var result = await alertDB.StreamReadGroupAsync(alertStreamName, groupName, $"avg-{i}", ">", 1);
+                            var result = await alertDB.StreamReadGroupAsync(alertStreamName, groupName, $"avg-1", ">", 1);
                             if (result.Any())
                             {
                                 var streamElement = result.First();

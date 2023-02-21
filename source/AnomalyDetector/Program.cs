@@ -54,7 +54,7 @@ namespace AnomalyDetector
                         try
                         {
                             // Console.WriteLine($"Reading - state cache - time: {System.Diagnostics.Stopwatch.GetTimestamp()}");
-                            var result = await stateDb.StreamReadGroupAsync(streamName, groupName, $"avg-{i}", ">", 1);
+                            var result = await stateDb.StreamReadGroupAsync(streamName, groupName, $"avg-1", ">", 1);
                             if (result.Any())
                             {
                                 var streamElement = result.First();
